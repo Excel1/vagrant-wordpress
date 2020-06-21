@@ -1,6 +1,6 @@
 $hostname = "dev-machine"
 
-$script = <<-SCRIPT
+$script_startup = <<-SCRIPT
 echo Starting SHELL v.1.0.0
 echo Update Packetlists...
 apt-get update
@@ -47,14 +47,24 @@ echo       powered by JK
 echo       jk-powered.de
 SCRIPT
 
+$script_backup = <<-SCRIPT
+echo Starting Backup Database...
+sudo mysqldump -ppassword wordpress > /databases/wordpress.sql
+echo Database Backup done.
+SCRIPT
+
 Vagrant.configure(2) do |config|
 	config.vm.box = "ubuntu/bionic64"
 	config.vm.hostname = $hostname
 	config.vm.network "forwarded_port", guest: 80, host: 8080
 	config.vm.network "forwarded_port", guest: 3306, host: 6033
-	config.vm.synced_folder "webpage/", "/var/www/html", owner: "vagrant", mount_options: ["dmode=777,fmode=777"]
+	config.vm.synced_folder "webpage/", "/var/www/html", owner: "vagrant", create: true, mount_options: ["dmode=777,fmode=777"]
+	config.vm.synced_folder "databases/", "/databases", owner: "vagrant", create: true, mount_options: ["dmode=777,fmode=777"]
 	config.vm.provider "virtualbox" do |vb|
- 		vb.memory = 1024
+		vb.memory = 1024
 	end
-	config.vm.provision "shell", inline: $script
+	config.trigger.before :halt do |trigger|
+		trigger.run_remote = {inline: $script_backup}
+	end
+	config.vm.provision "shell", inline: $script_startup
 end
