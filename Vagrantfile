@@ -8,7 +8,7 @@ echo Setting mysql root password...
 debconf-set-selections <<< 'mysql-server-5.5 mysql-server/root_password password root' 
 debconf-set-selections <<< 'mysql-server-5.5 mysql-server/root_password_again password root'
 echo Installing packages...
-sudo apt-get install -y apache2 mariadb-server mariadb-client php7.2 php7.2-mysql libapache2-mod-php7.2 php7.2-cli php7.2-cgi php7.2-gd php-xdebug
+sudo apt-get install -y apache2 mariadb-server mariadb-client php7.2 php7.2-mysql libapache2-mod-php7.2 php7.2-cli php7.2-cgi php7.2-gd php-xdebug ranger
 echo Setting up mysql-server...
 sudo service mysql stop
 sudo sed -i "s/bind-address.*/bind-address = 0.0.0.0/" /etc/mysql/my.cnf
@@ -31,20 +31,41 @@ sudo rsync -av wordpress/* /var/www/html/
 sudo chown -R www-data:www-data /var/www/html/
 sudo chmod -R 777 /var/www/html/
 sudo rm /var/www/html/index.html
+
+# update upload-sizes
+
+sudo sed -i "s/post_max_size.*/post_max_size = 1G/" /etc/php/7.2/apache2/php.ini
+sudo sed -i "s/upload_max_filesize.*/upload_max_filesize = 1G/" /etc/php/7.2/apache2/php.ini
+sudo sed -i "s/max_execution_time.*/max_execution_time = 1800/" /etc/php/7.2/apache2/php.ini
+sudo systemctl restart apache2
+
 mysqladmin -u root -proot create 'wordpress';
 mysql -u root -ppassword -e "use mysql; CREATE USER 'developer'@'localhost' IDENTIFIED BY 'LocalDevPass'; GRANT ALL PRIVILEGES ON * . * TO 'developer'@'localhost'; FLUSH PRIVILEGES;"
 echo   
 echo ----------------------------
-echo         Webserver
-echo url: http://localhost:8080
-echo --
-echo           Mysql
+echo "        Webserver"
+echo "url: http://localhost:8080"
+echo ----------------------------
+echo "          Mysql"
 echo username: developer
 echo password: LocalDevPass
 echo database: wordpress
 echo ----------------------------
-echo       powered by JK
-echo       jk-powered.de
+echo   
+echo " _________________________"
+echo " |                       |"
+echo " |                       |"
+echo " |         _  _  __      |"
+echo " |        | || |/ /      |"
+echo " |     _  | || ' /       |"
+echo " |    | |_| || . \\       |"
+echo " |     \\___/ |_|\\_\\      |"
+echo " |                       |"
+echo " |                       |"
+echo " |_______________________|"
+echo   
+echo "      powered by JK"
+echo "      jk-powered.de"
 SCRIPT
 
 $script_backup = <<-SCRIPT
